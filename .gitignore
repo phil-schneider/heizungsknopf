@@ -1,0 +1,12 @@
+# Zugangsdaten
+secrets.yaml
+
+# ESPHome-Build-Ordner
+.esphome/
+**/.esphome/
+
+# KiCad-Nebendateien
+*.kicad_prl
+*-backups/
+fp-info-cache
+*.lck
