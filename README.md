@@ -196,12 +196,27 @@ Der Motorstrom ist auf etwa 0,7 A eingestellt (Widerstand R9 = 4,7 kΩ). Reicht 
 
 ### 3. Das Bedienteil: Display und Tasten am Ofen (48 × 62 mm)
 
-![Bedienplatine von oben](bilder/bedienteil_oben.png)
+<table>
+  <tr>
+    <td align="center" valign="top" width="50%"><img src="bilder/bedieneinheit.jpg" alt="Die fertige Bedieneinheit: schwarzes Gehäuse mit leuchtendem Display und den Tasten + und −"></td>
+    <td align="center" valign="top" width="50%"><img src="bilder/bedienteil_oben.png" alt="Bedienplatine von oben"></td>
+  </tr>
+  <tr>
+    <td align="center"><em>So soll die Bedieneinheit aussehen (gerendert aus dem 3D-Modell, außen 80,5 × 124 × 25 mm)</em></td>
+    <td align="center"><em>Die Bedienplatine darin</em></td>
+  </tr>
+</table>
 
 - **Zwei große Taster** (12 × 12 mm): oben PLUS, darunter MINUS.
 - **SHT40**: misst Raumtemperatur und Luftfeuchte.
 - **J2 „OLED“**: Anschluss für ein 2,42-Zoll-OLED-Display (128 × 64 Pixel, Controller SSD1309, I2C). Das Display wird separat gekauft.
 - **J1**: Netzwerkbuchse zur Hauptplatine.
+
+**Was das Display anzeigt:** Groß die aktuelle Stufe mit einem Balken, rechts die Raumtemperatur, unten der nächste Wechsel laut Wochenplan oder ein aktiver Boost bzw. Urlaub. Hält man beide Tasten gleichzeitig, öffnet sich ein kleines Menü.
+
+![Alle Display-Ansichten](bilder/display_ansichten.png)
+
+Die Bilder sind aus der Display-Programmierung der Firmware nachgebildet, mit derselben Schrift und denselben Positionen. Das echte Display kann je nach Modell etwas anders wirken.
 
 Das Gehäuse des Bedienteils wird an die **Gittertür vor dem Ofen** geklemmt: Eine Gegenplatte kommt hinter das Gitter, der Gitterhalter davor, zwei Schrauben ziehen beide zusammen. Danach schiebt man das Gehäuse von oben auf eine Schiene (Schwalbenschwanz) am Halter. Zum Abnehmen zieht man es einfach nach oben ab.
 Der Halter ist für ein Gitter aus aneinanderliegenden Ringen gebaut (Ring-Abstand 33,2 mm). Bei einem anderen Gitter muss er angepasst werden.
@@ -273,6 +288,12 @@ Die Firmware besteht aus drei Dateien, die im selben Ordner liegen müssen:
 - **Weboberfläche** mit Login, aufgeteilt in Bedienung, Wochenplan, Einstellungen und Diagnose. Sie zeigt auch Raumtemperatur, Luftfeuchte und (falls angeschlossen) die Ofentemperatur.
 - **Uhrzeit** kommt automatisch aus dem Internet (Zeitzone Europe/Zurich, in `heizung.yaml` änderbar).
 - **Fernzugriff von unterwegs** bitte nur über ein VPN (z. B. WireGuard am Router oder Tailscale), **nicht** über eine Portweiterleitung im Router.
+
+**So sieht die Weboberfläche aus:** Man öffnet sie im Browser auf dem Handy oder PC (`http://heizung.local`). Auf der Startseite stellt man die Stufe ein und sieht dieselbe Anzeige wie am Display. Darunter folgen Boost, Urlaub und der Wochenplan. Tippt man auf einen Tag, kann man dessen Wechsel bearbeiten und auf andere Tage übernehmen.
+
+![Screenshots der Weboberfläche](bilder/weboberflaeche.jpg)
+
+Die Screenshots sind mit der echten Weboberfläche aus `firmware/heizung_ui.js` aufgenommen, aber mit simulierten Gerätedaten, weil die Hardware noch nicht läuft. Ist das Handy auf helles Design eingestellt, erscheint die Oberfläche hell.
 
 ---
 
