@@ -1,4 +1,4 @@
-// Heizungs-Knopf – reine Logik (Wochenplan, Datum/Zeit-Helfer)
+// Heizungs-Knopf – reine Logik (Wochenplan, Datum/Zeit-Helfer, TMC2209-Datagramme)
 // Wird von heizung.yaml eingebunden. Keine ESPHome-Abhängigkeiten, damit testbar.
 #pragma once
 #include <cstdint>
@@ -149,6 +149,71 @@ inline std::string fmt_zeit(time_t t) {
   char b[8];
   snprintf(b, sizeof(b), "%02d:%02d", v.tm_hour, v.tm_min);
   return std::string(b);
+}
+
+// ---------------------------------------------------------------------
+// TMC2209 Eindraht-UART (Datenblatt Kap. 4). Adresse 0, weil MS1 = MS2 = GND.
+// ---------------------------------------------------------------------
+static const uint8_t TMC_ADR = 0;
+static const uint8_t TMC_GCONF = 0x00;
+static const uint8_t TMC_IFCNT = 0x02;        // zählt erfolgreiche Schreibzugriffe (8 Bit)
+static const uint8_t TMC_IHOLD_IRUN = 0x10;
+// GCONF: I_scale_analog = 1 (VREF bleibt Massstab), pdn_disable = 1 (UART statt PDN),
+// mstep_reg_select = 0 (Mikroschritt weiter über MS1/MS2 = 1/8), multistep_filt = 1, StealthChop.
+static const uint32_t TMC_GCONF_WERT = 0x00000141;
+
+// CRC8 nach Datenblatt (Polynom x^8 + x^2 + x + 1, Bits LSB zuerst)
+inline uint8_t tmc_crc(const uint8_t *d, int n) {
+  uint8_t crc = 0;
+  for (int i = 0; i < n; i++) {
+    uint8_t b = d[i];
+    for (int j = 0; j < 8; j++) {
+      if (((crc >> 7) ^ (b & 0x01)) != 0) crc = (uint8_t) ((crc << 1) ^ 0x07);
+      else crc = (uint8_t) (crc << 1);
+      b >>= 1;
+    }
+  }
+  return crc;
+}
+
+// Schreibzugriff: 8 Byte
+inline void tmc_schreibdatagramm(uint8_t out[8], uint8_t reg, uint32_t wert) {
+  out[0] = 0x05;
+  out[1] = TMC_ADR;
+  out[2] = (uint8_t) (reg | 0x80);
+  out[3] = (uint8_t) (wert >> 24);
+  out[4] = (uint8_t) (wert >> 16);
+  out[5] = (uint8_t) (wert >> 8);
+  out[6] = (uint8_t) wert;
+  out[7] = tmc_crc(out, 7);
+}
+
+// Leseanfrage: 4 Byte
+inline void tmc_leseanfrage(uint8_t out[4], uint8_t reg) {
+  out[0] = 0x05;
+  out[1] = TMC_ADR;
+  out[2] = (uint8_t) (reg & 0x7F);
+  out[3] = tmc_crc(out, 3);
+}
+
+// Antwort (8 Byte: 05 FF reg d3 d2 d1 d0 crc) prüfen und Wert auslesen
+inline bool tmc_antwort(const uint8_t in[8], uint8_t reg, uint32_t &wert) {
+  if (in[0] != 0x05 || in[1] != 0xFF || in[2] != (reg & 0x7F)) return false;
+  if (tmc_crc(in, 7) != in[7]) return false;
+  wert = ((uint32_t) in[3] << 24) | ((uint32_t) in[4] << 16) | ((uint32_t) in[5] << 8) | in[6];
+  return true;
+}
+
+// Strom in % (des mit VREF/R9 eingestellten Maximums, ca. 0,7 A) -> Registerwert IHOLD_IRUN.
+// IRUN = Strom beim Fahren (0…31, Strom = (IRUN+1)/32), IHOLD = halber Fahrstrom, IHOLDDELAY = 4.
+inline uint32_t tmc_ihold_irun(int prozent) {
+  if (prozent < 5) prozent = 5;
+  if (prozent > 100) prozent = 100;
+  int irun = (prozent * 32 + 50) / 100 - 1;
+  if (irun < 0) irun = 0;
+  if (irun > 31) irun = 31;
+  const int ihold = irun / 2;
+  return (uint32_t) ihold | ((uint32_t) irun << 8) | (4u << 16);
 }
 
 }  // namespace hz

@@ -75,7 +75,7 @@
     for (let i = 0; i < 7; i++) balken += '<i class="' + (i < s ? 'v' : '') + '" style="height:' + (10 + i * 6) + 'px"></i>';
     let fuss;
     if (st.hl) fuss = 'Referenzfahrt…';
-    else if (st.hf) fuss = '⚠ Endschalter?';
+    else if (st.hf) fuss = '⚠ Referenz?';
     else if (st.be) fuss = '🔥 Boost bis ' + hhmm(st.be) + '<small>→ ' + stufeTxt(st.b) + '</small>';
     else if (st.ue) fuss = '🧳 Urlaub bis ' + datum(st.ue).slice(3);
     else if (!st.zp) fuss = '<s>◷</s> Zeitplan aus';
@@ -139,7 +139,8 @@
     const t = num('sensor/Raumtemperatur', NaN), temp = isNaN(t) ? '' : ' · Raum ' + t.toFixed(1).replace('.', ',') + ' °C';
     if (!verbunden) return 'Verbindung wird aufgebaut …';
     if (st.hl) return 'Referenzfahrt läuft';
-    if (st.hf) return 'Fehler: Endschalter nicht erreicht';
+    if (st.hf) return 'Fehler: Referenzfahrt fehlgeschlagen';
+    if (st.tu === 0) return 'Warnung: Motortreiber antwortet nicht (UART)';
     if (st.be) return 'Boost aktiv bis ' + hhmm(st.be);
     if (st.ue) return 'Urlaub bis ' + datum(st.ue);
     if (!st.zp) return 'Manuell · Wochenplan pausiert' + temp;
@@ -155,11 +156,13 @@
     ['Display-Helligkeit (%)', 'number', 'Helligkeit', 10, 100, 10],
     ['Temperatur-Korrektur (°C)', 'number', 'Temperatur Korrektur', -15, 5, 0.5],
     ['Brenner-Schwelle (°C)', 'number', 'Brenner Schwelle', 25, 80, 1],
-    ['Mechanik'],
-    ['Schritte pro Stufe', 'number', 'Schritte pro Stufe', 10, 1000, 1],
-    ['Position ✱ (Schritte)', 'number', 'Position Stern', 0, 1000, 1],
+    ['Mechanik (Schritte ab Anschlag ✱)'],
+    ['Position ✱', 'number', 'Position Stern', 0, 1000, 1],
+    ['Position Stufe 1', 'number', 'Position Stufe 1', 0, 3000, 1],
+    ['Schritte pro Stufe (1 → 7)', 'number', 'Schritte pro Stufe', 10, 1000, 1],
     ['Maximale Position', 'number', 'Maximale Position', 100, 4000, 10],
     ['Richtung umkehren', 'switch', 'Richtung umkehren'],
+    ['Referenzfahrt – Strom (%)', 'number', 'Referenz Strom', 20, 100, 5],
     ['Tägliche Referenzfahrt', 'switch', 'Referenz taeglich'],
     ['Referenzfahrt um', 'time', 'Referenz Uhrzeit'],
     ['Referenzfahrt jetzt', 'button', 'Referenzfahrt', 'Starten'],
@@ -167,7 +170,7 @@
     ['Luftfeuchte', 'info', 'sensor/Luftfeuchte'],
     ['Ofentemperatur', 'info', 'sensor/Ofentemperatur'],
     ['Brenner', 'info', 'binary_sensor/Brenner'],
-    ['Endschalter', 'info', 'binary_sensor/Endschalter'],
+    ['Motortreiber (UART)', 'info', 'binary_sensor/Treiber UART'],
     ['Motorposition', 'info', 'sensor/Motorposition'],
     ['WLAN', 'info', 'sensor/WLAN Signal'],
     ['IP-Adresse', 'info', 'text_sensor/IP'],

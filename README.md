@@ -393,7 +393,7 @@ Schrauben M3 (DIN 912):
    Diese Datei wird nie ins Repository hochgeladen.
 3. Hauptplatine mit **12 V** versorgen und per **USB-C** mit dem PC verbinden.
 4. Im Ordner `firmware/` ausführen: `esphome run heizung.yaml`
-5. Danach im Browser `http://heizung.local` öffnen. Klappt das nicht, die IP-Adresse des Geräts „heizung“ in der Geräteliste des Routers nachsehen. Unter **Einstellungen** die Mechanik eintragen: Schritte pro Stufe, Position ✱, maximale Position und Drehrichtung.
+5. Danach im Browser `http://heizung.local` öffnen. Klappt das nicht, die IP-Adresse des Geräts „heizung“ in der Geräteliste des Routers nachsehen. Unter **Einstellungen → Mechanik** die Werte abgleichen. Alle Positionen zählen in Schritten ab dem Anschlag ✱ (etwa 6,9 Schritte pro Grad am Knopf). Startwerte: Position ✱ 20, Position Stufe 1 690, Schritte pro Stufe 220, maximale Position 2050, Referenz-Strom 50 %. Bleibt der Knopf bei der Referenzfahrt vor ✱ stehen, den Referenz-Strom in 10-%-Schritten erhöhen.
 6. Spätere Updates gehen über WLAN, ohne USB-Kabel.
 
 ---
@@ -413,13 +413,10 @@ Schrauben M3 (DIN 912):
 
 Bevor das System wirklich im Alltag laufen kann, fehlt noch:
 
-- **Firmware an den Motoraufsatz anpassen.** Die Firmware stammt aus einer früheren Version mit Endschalter. Für den aktuellen Aufsatz muss sie:
-  - die Übersetzung 34 : 22 berücksichtigen (etwa 6,9 Mikroschritte pro Grad am Knopf; ✱ → 1 etwa 100°, danach etwa 32° pro Stufe),
-  - die Startposition ohne Endschalter finden, indem der Motor mit wenig Strom gegen den Anschlag bei ✱ fährt,
-  - jede Stufe immer aus derselben Richtung anfahren, weil Kappe und Zahnräder etwas Spiel haben,
-  - den Motor im Stillstand stromlos schalten.
+- **Firmware: Stufen immer aus derselben Richtung anfahren**, weil Kappe und Zahnräder etwas Spiel haben. Der Rest ist umgesetzt: Übersetzung 34 : 22 als Startwerte, Referenzfahrt ohne Endschalter (mit wenig Strom gegen den Anschlag ✱), Motor im Stillstand stromlos.
 - **Erster Aufbau und Test** an echter Hardware, besonders:
   - ob die Kraft des Motors reicht, um den Knopf zu drehen (nicht gemessen),
+  - ob der Knopf von ✱ nicht ohne Drücken weiter auf „Aus“ geht (die Referenzfahrt drückt gegen ✱) und welcher „Referenz Strom“ nötig ist, damit der Knopf von 7 aus sicher bis ✱ kommt,
   - wie gut die Kappe auf dem Knopf sitzt,
   - ob der Bildbereich des Displays genau im Fenster liegt.
 - **Montageort** des Hauptplatinen-Gehäuses festlegen.
