@@ -77,8 +77,12 @@ ota:
 web_server:
   port: 80
   version: 3
-  local: true
+  # Eigene Oberfläche aus heizung_ui.js (in der Firmware, braucht kein Internet).
+  # Kein „local: true“: damit liefert ESPHome seine fertige Standardseite aus und
+  # bindet js_include gar nicht ein. js_url leer = Standardseite nicht automatisch laden;
+  # die Weboberfläche lädt sie erst auf Knopfdruck („ESPHome-Standardliste anzeigen“).
   js_include: heizung_ui.js
+  js_url: ""
   auth:
     type: digest
     username: !secret heizung_web_username

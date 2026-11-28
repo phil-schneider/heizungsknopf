@@ -284,7 +284,17 @@
       case 'sw': await sw(v, !val('switch/' + v, false)); break;
       case 'btn': if (v !== 'Neustart' || confirm('Gerät neu starten?')) { await druck(v); meldung('Gesendet'); } break;
       case 'fw': fwIn.click(); break;
-      case 'esp': if (!document.querySelector('esp-app')) document.body.appendChild(document.createElement('esp-app')); break;
+      case 'esp': {    // Standardliste von ESPHome nachladen (braucht Internet im Browser)
+        if (document.querySelector('esp-app')) break;
+        if (!customElements.get('esp-app') && !document.getElementById('hz-espjs')) {
+          const sc = document.createElement('script');
+          sc.id = 'hz-espjs'; sc.src = 'https://oi.esphome.io/v3/www.js';
+          sc.onerror = () => meldung('Standardliste braucht Internet');
+          document.body.appendChild(sc);
+        }
+        document.body.appendChild(document.createElement('esp-app'));
+        break;
+      }
       case 'tag': dlg = { typ: 'tag', tag: +v, arr: planTag(+v), kopie: new Set() }; zeichneDlg(); break;
       case 'urlaub': {
         const n = new Date(), t = st.ue ? Math.max(1, num('number/Urlaub Tage', 7)) : 7;
