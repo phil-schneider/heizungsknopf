@@ -74,7 +74,8 @@
     let balken = '';
     for (let i = 0; i < 7; i++) balken += '<i class="' + (i < s ? 'v' : '') + '" style="height:' + (10 + i * 6) + 'px"></i>';
     let fuss;
-    if (st.hl) fuss = 'Referenzfahrt…';
+    if (st.tm) fuss = '🔧 Testmodus<small>' + Math.round(num('sensor/Knopfwinkel', 0)) + '°</small>';
+    else if (st.hl) fuss = 'Referenzfahrt…';
     else if (st.hf) fuss = '⚠ Referenz?';
     else if (st.be) fuss = '🔥 Boost bis ' + hhmm(st.be) + '<small>→ ' + stufeTxt(st.b) + '</small>';
     else if (st.ue) fuss = '🧳 Urlaub bis ' + datum(st.ue).slice(3);
@@ -91,6 +92,17 @@
     const s = st.s || 0;
     let h = '<h1>Heizung</h1><p class="sub">' + untertitel() + '</p>';
     h += '<div class="k">' + oled() + '</div>';
+
+    if (st.tm) {
+      const w = Math.round(num('sensor/Knopfwinkel', 0)), pos = num('sensor/Motorposition', 0);
+      h += '<div class="k"><div class="kt or">Motortest<span>' + w + '° am Knopf · ' + pos + ' Schritte</span></div>' +
+        '<div class="zl"><button data-a="btn" data-v="Test minus 90">−90°</button><button data-a="btn" data-v="Test minus 10">−10°</button>' +
+        '<button data-a="btn" data-v="Test plus 10">+10°</button><button data-a="btn" data-v="Test plus 90">+90°</button></div>' +
+        '<div class="ez"><span>Position (% von max.)</span><input type="number" inputmode="decimal" data-n="Test Position" min="0" max="100" step="1" value="' + num('number/Test Position', 0) + '"></div>' +
+        '<div class="zl"><button class="rot" data-a="btn" data-v="Test Stopp">Stopp</button><button data-a="btn" data-v="Test Nullpunkt">Nullpunkt hier</button></div>' +
+        '<p class="kl">Grad am Knopf, + = wärmer. Der Motor dreht 1,55-mal so weit. Wochenplan und Stufen bewegen den Motor im Testmodus nicht.</p>' +
+        '<button class="voll" data-a="sw" data-v="Testmodus">Testmodus beenden (startet Referenzfahrt)</button></div>';
+    }
 
     if (st.be) {
       const rest = Math.max(0, Math.round((st.be - (st.t || Date.now() / 1000)) / 60));
@@ -138,6 +150,7 @@
   function untertitel() {
     const t = num('sensor/Raumtemperatur', NaN), temp = isNaN(t) ? '' : ' · Raum ' + t.toFixed(1).replace('.', ',') + ' °C';
     if (!verbunden) return 'Verbindung wird aufgebaut …';
+    if (st.tm) return 'Testmodus – Motor wird von Hand gesteuert' + (st.tu === 0 ? ' · Treiber antwortet nicht (UART)' : '');
     if (st.hl) return 'Referenzfahrt läuft';
     if (st.hf) return 'Fehler: Referenzfahrt fehlgeschlagen';
     if (st.tu === 0) return 'Warnung: Motortreiber antwortet nicht (UART)';
@@ -166,6 +179,10 @@
     ['Tägliche Referenzfahrt', 'switch', 'Referenz taeglich'],
     ['Referenzfahrt um', 'time', 'Referenz Uhrzeit'],
     ['Referenzfahrt jetzt', 'button', 'Referenzfahrt', 'Starten'],
+    ['Motortest (ohne Aufsatz)'],
+    ['Testmodus', 'switch', 'Testmodus'],
+    ['Test-Strom (%)', 'number', 'Test Strom', 20, 100, 5],
+    ['Test-Tempo (Schritte/s)', 'number', 'Test Tempo', 50, 1500, 50],
     ['Diagnose'],
     ['Luftfeuchte', 'info', 'sensor/Luftfeuchte'],
     ['Ofentemperatur', 'info', 'sensor/Ofentemperatur'],

@@ -396,6 +396,8 @@ Schrauben M3 (DIN 912):
 5. Danach im Browser `http://heizung.local` öffnen. Klappt das nicht, die IP-Adresse des Geräts „heizung“ in der Geräteliste des Routers nachsehen. Unter **Einstellungen → Mechanik** die Werte abgleichen. Alle Positionen zählen in Schritten ab dem Anschlag ✱ (etwa 6,9 Schritte pro Grad am Knopf). Startwerte: Position ✱ 20, Position Stufe 1 690, Schritte pro Stufe 220, maximale Position 2050, Referenz-Strom 50 %. Bleibt der Knopf bei der Referenzfahrt vor ✱ stehen, den Referenz-Strom in 10-%-Schritten erhöhen.
 6. Spätere Updates gehen über WLAN, ohne USB-Kabel.
 
+**Motortest ohne Aufsatz:** Unter **Einstellungen → Motortest** den Schalter **Testmodus** einschalten. Dann macht die Firmware keine Referenzfahrt, und Wochenplan und Stufen bewegen den Motor nicht. Die aktuelle Stellung gilt als Nullpunkt. Auf der Startseite erscheint eine Karte „Motortest“ mit −90°, −10°, +10° und +90° (Grad am Knopf; der Motor selbst dreht 1,55-mal so weit), einem Feld für die Position in Prozent der maximalen Position, „Stopp“ und „Nullpunkt hier“. Die Tasten PLUS und MINUS am Bedienteil fahren im Testmodus je 10°. Strom und Tempo lassen sich einstellen. Im Testmodus gibt es keine Begrenzung auf den Drehbereich, deshalb nur ohne Aufsatz oder vorsichtig benutzen. Beim Ausschalten startet die normale Referenzfahrt. Auch für den Test braucht die Platine 12 V, über USB allein dreht der Motor nicht.
+
 ---
 
 ## Sicherheit
