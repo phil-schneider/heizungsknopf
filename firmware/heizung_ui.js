@@ -74,8 +74,9 @@
     let balken = '';
     for (let i = 0; i < 7; i++) balken += '<i class="' + (i < s ? 'v' : '') + '" style="height:' + (10 + i * 6) + 'px"></i>';
     let fuss;
-    if (st.hl) fuss = 'Referenzfahrt…';
-    else if (st.hf) fuss = '⚠ Endschalter?';
+    if (st.tm) fuss = '🔧 Testmodus<small>' + Math.round(num('sensor/Knopfwinkel', 0)) + '°</small>';
+    else if (st.hl) fuss = 'Referenzfahrt…';
+    else if (st.hf) fuss = '⚠ Referenz?';
     else if (st.be) fuss = '🔥 Boost bis ' + hhmm(st.be) + '<small>→ ' + stufeTxt(st.b) + '</small>';
     else if (st.ue) fuss = '🧳 Urlaub bis ' + datum(st.ue).slice(3);
     else if (!st.zp) fuss = '<s>◷</s> Zeitplan aus';
@@ -91,6 +92,17 @@
     const s = st.s || 0;
     let h = '<h1>Heizung</h1><p class="sub">' + untertitel() + '</p>';
     h += '<div class="k">' + oled() + '</div>';
+
+    if (st.tm) {
+      const w = Math.round(num('sensor/Knopfwinkel', 0)), pos = num('sensor/Motorposition', 0);
+      h += '<div class="k"><div class="kt or">Motortest<span>' + w + '° am Knopf · ' + pos + ' Schritte</span></div>' +
+        '<div class="zl"><button data-a="btn" data-v="Test minus 90">−90°</button><button data-a="btn" data-v="Test minus 10">−10°</button>' +
+        '<button data-a="btn" data-v="Test plus 10">+10°</button><button data-a="btn" data-v="Test plus 90">+90°</button></div>' +
+        '<div class="ez"><span>Position (% von max.)</span><input type="number" inputmode="decimal" data-n="Test Position" min="0" max="100" step="1" value="' + num('number/Test Position', 0) + '"></div>' +
+        '<div class="zl"><button class="rot" data-a="btn" data-v="Test Stopp">Stopp</button><button data-a="btn" data-v="Test Nullpunkt">Nullpunkt hier</button></div>' +
+        '<p class="kl">Grad am Knopf, + = wärmer. Der Motor dreht 1,55-mal so weit. Wochenplan und Stufen bewegen den Motor im Testmodus nicht.</p>' +
+        '<button class="voll" data-a="sw" data-v="Testmodus">Testmodus beenden (startet Referenzfahrt)</button></div>';
+    }
 
     if (st.be) {
       const rest = Math.max(0, Math.round((st.be - (st.t || Date.now() / 1000)) / 60));
@@ -138,8 +150,10 @@
   function untertitel() {
     const t = num('sensor/Raumtemperatur', NaN), temp = isNaN(t) ? '' : ' · Raum ' + t.toFixed(1).replace('.', ',') + ' °C';
     if (!verbunden) return 'Verbindung wird aufgebaut …';
+    if (st.tm) return 'Testmodus – Motor wird von Hand gesteuert' + (st.tu === 0 ? ' · Treiber antwortet nicht (UART)' : '');
     if (st.hl) return 'Referenzfahrt läuft';
-    if (st.hf) return 'Fehler: Endschalter nicht erreicht';
+    if (st.hf) return 'Fehler: Referenzfahrt fehlgeschlagen';
+    if (st.tu === 0) return 'Warnung: Motortreiber antwortet nicht (UART)';
     if (st.be) return 'Boost aktiv bis ' + hhmm(st.be);
     if (st.ue) return 'Urlaub bis ' + datum(st.ue);
     if (!st.zp) return 'Manuell · Wochenplan pausiert' + temp;
@@ -155,23 +169,31 @@
     ['Display-Helligkeit (%)', 'number', 'Helligkeit', 10, 100, 10],
     ['Temperatur-Korrektur (°C)', 'number', 'Temperatur Korrektur', -15, 5, 0.5],
     ['Brenner-Schwelle (°C)', 'number', 'Brenner Schwelle', 25, 80, 1],
-    ['Mechanik'],
-    ['Schritte pro Stufe', 'number', 'Schritte pro Stufe', 10, 1000, 1],
-    ['Position ✱ (Schritte)', 'number', 'Position Stern', 0, 1000, 1],
+    ['Mechanik (Schritte ab Anschlag ✱)'],
+    ['Position ✱', 'number', 'Position Stern', 0, 1000, 1],
+    ['Position Stufe 1', 'number', 'Position Stufe 1', 0, 3000, 1],
+    ['Schritte pro Stufe (1 → 7)', 'number', 'Schritte pro Stufe', 10, 1000, 1],
     ['Maximale Position', 'number', 'Maximale Position', 100, 4000, 10],
     ['Richtung umkehren', 'switch', 'Richtung umkehren'],
+    ['Referenzfahrt – Strom (%)', 'number', 'Referenz Strom', 20, 100, 5],
     ['Tägliche Referenzfahrt', 'switch', 'Referenz taeglich'],
     ['Referenzfahrt um', 'time', 'Referenz Uhrzeit'],
     ['Referenzfahrt jetzt', 'button', 'Referenzfahrt', 'Starten'],
+    ['Motortest (ohne Aufsatz)'],
+    ['Testmodus', 'switch', 'Testmodus'],
+    ['Test-Strom (%)', 'number', 'Test Strom', 20, 100, 5],
+    ['Test-Tempo (Schritte/s)', 'number', 'Test Tempo', 50, 1500, 50],
     ['Diagnose'],
     ['Luftfeuchte', 'info', 'sensor/Luftfeuchte'],
     ['Ofentemperatur', 'info', 'sensor/Ofentemperatur'],
     ['Brenner', 'info', 'binary_sensor/Brenner'],
-    ['Endschalter', 'info', 'binary_sensor/Endschalter'],
+    ['Motortreiber (UART)', 'info', 'binary_sensor/Treiber UART'],
     ['Motorposition', 'info', 'sensor/Motorposition'],
     ['WLAN', 'info', 'sensor/WLAN Signal'],
     ['IP-Adresse', 'info', 'text_sensor/IP'],
     ['Gerät', 'button', 'Neustart', 'Neustart'],
+    ['Firmware-Update'],
+    ['Datei im OTA-Format (…ota.bin)', 'fw'],
   ];
   function einst() {
     let h = '<h1><a data-a="zurueck">←</a> Einstellungen</h1>', offen = false;
@@ -183,6 +205,7 @@
       else if (typ === 'time') r = '<input type="time" data-t="' + esc(name) + '" value="' + String(val('time/' + name, '')).slice(0, 5) + '">';
       else if (typ === 'switch') r = '<button class="sw' + (val('switch/' + name, false) ? ' an' : '') + '" data-a="sw" data-v="' + esc(name) + '"><i></i></button>';
       else if (typ === 'button') r = '<button class="kl" data-a="btn" data-v="' + esc(name) + '">' + e[3] + '</button>';
+      else if (typ === 'fw') r = '<button class="kl" data-a="fw">Datei wählen …</button>';
       else r = '<span class="grau">' + esc(S[name] ? S[name].state : '–') + '</span>';
       h += '<div class="ez"><span>' + lab + '</span>' + r + '</div>';
     });
@@ -260,6 +283,7 @@
       case 'zurueck': seite = 'start'; zeichne(); break;
       case 'sw': await sw(v, !val('switch/' + v, false)); break;
       case 'btn': if (v !== 'Neustart' || confirm('Gerät neu starten?')) { await druck(v); meldung('Gesendet'); } break;
+      case 'fw': fwIn.click(); break;
       case 'esp': if (!document.querySelector('esp-app')) document.body.appendChild(document.createElement('esp-app')); break;
       case 'tag': dlg = { typ: 'tag', tag: +v, arr: planTag(+v), kopie: new Set() }; zeichneDlg(); break;
       case 'urlaub': {
@@ -298,6 +322,32 @@
         break;
       }
     }
+  }
+
+  // ---------- Firmware-Update (ESPHome web_server OTA, POST /update) ----------
+  let fwLaeuft = false, fwIn = null;   // Dateiauswahl liegt ausserhalb von #hz, damit Neuzeichnen sie nicht löscht
+  function fwUpdate(f) {
+    if (fwLaeuft) return;
+    if (!/\.bin$/i.test(f.name)) { alert('Bitte eine .bin-Datei wählen.'); return; }
+    if (/factory/i.test(f.name)) {
+      alert('Das ist eine Datei im „Factory format“. Die ist nur für das erste Flashen per USB (web.esphome.io).\n\nFür das Update hier im Device Builder „Manual download“ → „OTA format“ wählen (Datei …ota.bin).');
+      return;
+    }
+    if (!confirm('Firmware „' + f.name + '“ (' + Math.round(f.size / 1024) + ' kB) hochladen?\n\nDas Gerät startet danach neu. Während des Updates die Seite offen lassen und den Strom nicht trennen.')) return;
+    fwLaeuft = true;
+    const fd = new FormData();
+    fd.append('update', f, f.name);
+    const x = new XMLHttpRequest();
+    x.open('POST', '/update');
+    x.upload.onprogress = (e) => { if (e.lengthComputable) meldung('Update ' + Math.round((e.loaded / e.total) * 100) + ' %'); };
+    x.onload = () => {
+      fwLaeuft = false;
+      if (x.status === 200 && /Successful/i.test(x.responseText)) meldung('Update erfolgreich – Gerät startet neu …');
+      else alert('Update fehlgeschlagen: ' + (x.responseText || ('HTTP ' + x.status)));
+    };
+    x.onerror = () => { fwLaeuft = false; alert('Update fehlgeschlagen: keine Verbindung.'); };
+    meldung('Update 0 %');
+    x.send(fd);
   }
 
   // ---------- Start ----------
@@ -356,6 +406,9 @@
     document.head.appendChild($('<style>' + CSS + '</style>'));
     wurzel = $('<div id="hz"></div>'); dlgEl = $('<div id="hz-dlg"></div>');
     document.body.prepend(dlgEl); document.body.prepend(wurzel);
+    fwIn = $('<input type="file" accept=".bin" style="display:none">');
+    document.body.appendChild(fwIn);
+    fwIn.addEventListener('change', () => { const f = fwIn.files && fwIn.files[0]; fwIn.value = ''; if (f) fwUpdate(f); });
 
     document.body.addEventListener('click', (e) => {
       if (e.target === dlgEl) { dlg = null; zeichneDlg(); return; }
