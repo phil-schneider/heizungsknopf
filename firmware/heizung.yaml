@@ -69,8 +69,10 @@ wifi:
 captive_portal:
 
 ota:
-  - platform: esphome
+  - platform: esphome          # Update aus ESPHome / Device Builder im selben Netz
     password: !secret ota_password
+  - platform: web_server       # Update im Browser: Weboberfläche → Einstellungen → Firmware-Update
+                               # (Datei im „OTA format“, z. B. heizung.ota.bin; geschützt durch den Web-Login)
 
 web_server:
   port: 80
