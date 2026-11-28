@@ -60,17 +60,17 @@ logger:
   hardware_uart: USB_SERIAL_JTAG
 
 wifi:
-  ssid: !secret wifi_ssid
-  password: !secret wifi_password
+  ssid: !secret heizung_wifi_ssid
+  password: !secret heizung_wifi_password
   ap:
     ssid: "Heizung Fallback"
-    password: !secret ap_password
+    password: !secret heizung_ap_password
 
 captive_portal:
 
 ota:
   - platform: esphome          # Update aus ESPHome / Device Builder im selben Netz
-    password: !secret ota_password
+    password: !secret heizung_ota_password
   - platform: web_server       # Update im Browser: Weboberfläche → Einstellungen → Firmware-Update
                                # (Datei im „OTA format“, z. B. heizung.ota.bin; geschützt durch den Web-Login)
 
@@ -81,8 +81,8 @@ web_server:
   js_include: heizung_ui.js
   auth:
     type: digest
-    username: !secret web_username
-    password: !secret web_password
+    username: !secret heizung_web_username
+    password: !secret heizung_web_password
   sorting_groups:
     - id: grp_bedienung
       name: "Bedienung"
